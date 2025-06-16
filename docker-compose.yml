@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: stock-prediction-backend:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./World-Stock-Prices-Dataset.csv:/app/World-Stock-Prices-Dataset.csv
+      - ./models:/app/models
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: stock-price-frontiers:latest
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    environment:
+      - BACKEND_URL=http://backend:8000
