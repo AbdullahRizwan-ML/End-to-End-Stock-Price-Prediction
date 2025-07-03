@@ -1,0 +1,5 @@
+Open
+High
+Low
+Volume
+lag_1_close

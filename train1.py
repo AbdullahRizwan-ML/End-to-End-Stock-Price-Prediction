@@ -142,14 +142,13 @@ def main():
     if df is None:
         return None, None
     
-    tickers = df['Ticker'].unique()
-    print(f"Available tickers: {tickers[:10]}...")
+    # Get all unique tickers from the dataset
+    tickers = df['Ticker'].unique().tolist()
+    print(f"Total tickers found: {len(tickers)}")
+    print(f"Sample tickers: {tickers[:10]}...")
     
-    companies = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']
-    companies = [c for c in companies if c in tickers]
-    if not companies:
-        print("No valid companies found in dataset. Using first 3 tickers.")
-        companies = tickers[:3].tolist()
+    # Use all tickers instead of a hardcoded list
+    companies = tickers  # Process all tickers
     
     # Reduced feature set
     feature_cols = ['Open', 'High', 'Low', 'Volume', 'lag_1_close']
@@ -173,11 +172,20 @@ def main():
     all_results = {}
     all_best_models = {}
     
+    # Track failed tickers
+    failed_tickers = []
+    
     for company in companies:
-        results, best_model = train_and_evaluate_company(df, company, feature_cols, models)
-        if results is not None:
-            all_results[company] = results
-            all_best_models[company] = best_model
+        try:
+            results, best_model = train_and_evaluate_company(df, company, feature_cols, models)
+            if results is not None:
+                all_results[company] = results
+                all_best_models[company] = best_model
+            else:
+                failed_tickers.append(company)
+        except Exception as e:
+            print(f"Error training for {company}: {str(e)}")
+            failed_tickers.append(company)
     
     if all_results:
         print("\nSummary of Best Models:")
@@ -193,6 +201,9 @@ def main():
             })
         summary_df = pd.DataFrame(summary_data)
         print(summary_df)
+    
+    if failed_tickers:
+        print(f"\nFailed to train models for {len(failed_tickers)} tickers: {failed_tickers}")
     
     return all_results, all_best_models
 
